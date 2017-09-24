@@ -1,0 +1,11 @@
+*.VC.*
+*.aps
+*.dll
+*.obj
+*.tlog
+.vs
+Debug/
+LFX2.h
+LogitechLEDLib.*
+Release/
+ipch/
