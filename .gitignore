@@ -3,9 +3,12 @@
 *.dll
 *.obj
 *.tlog
+*.user
 .vs
 Debug/
 LFX2.h
 LogitechLEDLib.*
 Release/
 ipch/
+UniLight.exe
+UniLight.zip

@@ -1,5 +1,20 @@
 // UniLight by HunterZ
-
+/*
+#ifndef _FILE_DEFINED
+struct _iobuf {
+	char *_ptr;
+	int   _cnt;
+	char *_base;
+	int   _flag;
+	int   _file;
+	int   _charbuf;
+	int   _bufsiz;
+	char *_tmpfname;
+};
+typedef struct _iobuf FILE;
+#define _FILE_DEFINED
+#endif
+*/
 #include "ColorUtil.h"
 #include "LFXUtil.h"
 #include "LLEDUtil.h"
@@ -10,12 +25,15 @@
 #include <strsafe.h>
 #include <tchar.h>
 #include <windows.h>
-
+#include <Wtsapi32.h>
+/*
+#include <iostream>
+#include <io.h>
+#include <fcntl.h>
+*/
 #define ID_TRAY_APP_ICON 1001
 #define ID_TRAY_EXIT     1002
 #define ID_TRAY_ABOUT    1003
-#define IDT_TIMER        1004
-#define IDT_TIMER_INIT   1005
 #define WM_SYSICON       (WM_USER + 1)
 
 namespace
@@ -29,6 +47,27 @@ namespace
 	LLEDUtil::LLEDUtilC llledUtil;
 	COLORREF lastColor(0);
 }
+/*
+// maximum mumber of lines the output console should have
+static const WORD MAX_CONSOLE_LINES = 500;
+
+void RedirectIOToConsole()
+{
+	AllocConsole();
+
+	HANDLE handle_out = GetStdHandle(STD_OUTPUT_HANDLE);
+	int hCrt = _open_osfhandle((long)handle_out, _O_TEXT);
+	FILE* hf_out = _fdopen(hCrt, "w");
+	setvbuf(hf_out, NULL, _IONBF, 1);
+	*stdout = *hf_out;
+
+	HANDLE handle_in = GetStdHandle(STD_INPUT_HANDLE);
+	hCrt = _open_osfhandle((long)handle_in, _O_TEXT);
+	FILE* hf_in = _fdopen(hCrt, "r");
+	setvbuf(hf_in, NULL, _IONBF, 128);
+	*stdin = *hf_in;
+}
+*/
 
 void ShowAbout(HWND hwnd)
 {
@@ -40,9 +79,43 @@ void ShowAbout(HWND hwnd)
 	active = false;
 }
 
+void UpdateColor(const COLORREF curColor)
+{
+	// set AlienFX/LightFX color
+	const bool lfxStatus(lfxUtil.SetLFXColor(GetRValue(curColor), GetGValue(curColor), GetBValue(curColor)));
+
+	// set Logitech LED color
+	const bool lledStatus(llledUtil.SetLLEDColor(GetRValue(curColor), GetGValue(curColor), GetBValue(curColor)));
+
+	// set tooltip
+	std::wstringstream s;
+	s << "UniLight status:";
+	s << "\nCurrent color: 0x" << std::setfill(L'0') << std::setw(8) << std::hex << curColor;
+	s << "\nPrevious color: 0x" << std::setfill(L'0') << std::setw(8) << std::hex << lastColor;
+	s << "\nLightFX: " << (lfxStatus ? "active" : "inactive");
+	s << "\nLogiLED: " << (lledStatus ? "active" : "inactive");
+	StringCchCopy(notifyIconData.szTip, 128, s.str().c_str());
+	Shell_NotifyIcon(NIM_MODIFY, &notifyIconData);
+
+	// update last-seen color to new value
+	lastColor = curColor;
+
+//	std::cout << std::setfill('0') << std::setw(8) << std::hex << curColor << std::endl;
+}
+
+void GetAndUpdateColor()
+{
+	static COLORREF curColor(0);
+	const bool success(ColorUtil::GetColorizationColor(curColor));
+	if (!success) return;
+	UpdateColor(curColor);
+}
+
 // This function is called by the Windows function DispatchMessage()
 LRESULT CALLBACK WindowProcedure(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
+//	std::cout << "hwnd=" << hwnd << ", message=" << message << ", wParam=" << wParam << ", lParam=" << lParam << std::endl;
+
 	// if explorer restarts, re-add tray icon
 	// this can't be handled in the switch() below because it is a dynamic value
 	if (message == WM_TASKBARCREATED)
@@ -54,7 +127,7 @@ LRESULT CALLBACK WindowProcedure(HWND hwnd, UINT message, WPARAM wParam, LPARAM 
 	// handle the messages
 	switch (message)         
 	{
-		// user-defined WM_SYSICON message
+		// user-defined WM_SYSICON message indicating interaction with tray icon
 		case WM_SYSICON:
 		{
 			// we could check for wParam == ID_TRAY_APP_ICON here, but why bother when we have only one?
@@ -79,46 +152,19 @@ LRESULT CALLBACK WindowProcedure(HWND hwnd, UINT message, WPARAM wParam, LPARAM 
 				}
 			}
 		}
-		break;
+		return 0;
 
-		// color check timers
-		case WM_TIMER:
+		// accent color changed
+		case WM_DWMCOLORIZATIONCOLORCHANGED:
 		{
-			COLORREF curColor(0);
-			const bool success(ColorUtil::GetColorizationColor(curColor));
-			static bool firstTime(true);
-			if (success &&
-			    (curColor != lastColor || firstTime))
-			{
-				firstTime = false;
+			UpdateColor(ColorUtil::Dword2ColorRef(wParam));
+		}
+		return 0;
 
-				// set AlienFX/LightFX color
-				const bool lfxStatus(lfxUtil.SetLFXColor(GetRValue(curColor), GetGValue(curColor), GetBValue(curColor)));
-
-				// set Logitech LED color
-				const bool lledStatus(llledUtil.SetLLEDColor(GetRValue(curColor), GetGValue(curColor), GetBValue(curColor)));
-
-				// set tooltip
-				std::wstringstream s;
-				s << "UniLight status:";
-				s << "\nCurrent color: 0x" << std::setfill(L'0') << std::setw(8) << std::hex << curColor;
-				s << "\nPrevious color: 0x" << std::setfill(L'0') << std::setw(8) << std::hex << lastColor;
-				s << "\nLightFX: " << (lfxStatus ? "active" : "inactive");
-				s << "\nLogiLED: " << (lledStatus ? "active" : "inactive");
-				StringCchCopy(notifyIconData.szTip, 128, s.str().c_str());
-				Shell_NotifyIcon(NIM_MODIFY, &notifyIconData);
-
-				// update last-seen color to new value
-				lastColor = curColor;
-			}
-
-			if (wParam == IDT_TIMER_INIT)
-			{
-				// this is the initial one-shot timer
-				// kill it and start the regular timer
-				KillTimer(hwnd, IDT_TIMER_INIT);
-				SetTimer(hwnd, IDT_TIMER, 1000, (TIMERPROC)NULL);
-			}
+		// session status changed (e.g. lock/unlock)
+		case WM_WTSSESSION_CHANGE:
+		{
+			GetAndUpdateColor();
 		}
 		return 0;
 	}
@@ -131,6 +177,9 @@ int WINAPI WinMain(HINSTANCE hThisInstance,
 	LPSTR lpszArgument,
 	int nCmdShow)
 {
+//	RedirectIOToConsole();
+//	std::cout << "TEST" << std::endl;
+
 	// register for taskbar re-create events so that icon can be restored after an explorer restart
 	WM_TASKBARCREATED = RegisterWindowMessageA("TaskbarCreated");
 
@@ -170,6 +219,8 @@ int WINAPI WinMain(HINSTANCE hThisInstance,
 		NULL
 	));
 
+	WTSRegisterSessionNotification(hwnd, NOTIFY_FOR_ALL_SESSIONS);
+
 	// initialize tray icon data structure
 	memset(&notifyIconData, 0, sizeof(NOTIFYICONDATA));
 	notifyIconData.cbSize = sizeof(NOTIFYICONDATA);
@@ -183,11 +234,8 @@ int WINAPI WinMain(HINSTANCE hThisInstance,
 	// add the tray icon to the system tray
 	Shell_NotifyIcon(NIM_ADD, &notifyIconData);
 
-	// kick off an immediate one-shot timer to seed color processing
-	SetTimer(hwnd,             // handle to main window 
-	         IDT_TIMER_INIT,   // timer identifier 
-	         0,                // interval in milliseconds
-	         (TIMERPROC)NULL); // no timer callback (WindowProcedure() will be invoked)
+	// perform initial LED color sync
+	GetAndUpdateColor();
 
 	// Run the UI message loop. It will run until GetMessage() returns 0
 	MSG messages;
@@ -197,6 +245,8 @@ int WINAPI WinMain(HINSTANCE hThisInstance,
 		TranslateMessage(&messages); // Translate virtual-key messages into character messages		
 		DispatchMessage(&messages);  // Send message to WindowProcedure
 	}
+
+//	std::cout << "TEST2" << std::endl;
 
 	// we're done - clean up UI elements
 	Shell_NotifyIcon(NIM_DELETE, &notifyIconData);

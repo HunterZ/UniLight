@@ -23,17 +23,22 @@ namespace
 
 namespace ColorUtil
 {
+	COLORREF Dword2ColorRef(const DWORD dword)
+	{
+		static ColorU color;
+		color.ci = dword;
+		return RGB(color.cs.red, color.cs.green, color.cs.blue);
+	}
+
 	bool GetColorizationColor(COLORREF& colorRef)
 	{
 		static DWORD dwColor(0);
 		static BOOL opaque(TRUE);
 		static bool useResult(false);
-		static ColorU color;
 		useResult = SUCCEEDED(DwmGetColorizationColor(&dwColor, &opaque));
 		if (useResult)
 		{
-			color.ci = dwColor;
-			colorRef = RGB(color.cs.red, color.cs.green, color.cs.blue);
+			colorRef = Dword2ColorRef(dwColor);
 		}
 		return useResult;
 	}
