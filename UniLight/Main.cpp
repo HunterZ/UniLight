@@ -32,8 +32,9 @@ typedef struct _iobuf FILE;
 #include <fcntl.h>
 */
 #define ID_TRAY_APP_ICON 1001
-#define ID_TRAY_EXIT     1002
+#define ID_TRAY_SYNC     1002
 #define ID_TRAY_ABOUT    1003
+#define ID_TRAY_EXIT     1004
 #define WM_SYSICON       (WM_USER + 1)
 
 namespace
@@ -135,7 +136,7 @@ LRESULT CALLBACK WindowProcedure(HWND hwnd, UINT message, WPARAM wParam, LPARAM 
 			// check for mouse actions
 			if (lParam == WM_LBUTTONUP)
 			{
-				ShowAbout(hwnd);
+				GetAndUpdateColor();
 			}
 			else if (lParam == WM_RBUTTONUP)
 			{
@@ -147,8 +148,9 @@ LRESULT CALLBACK WindowProcedure(HWND hwnd, UINT message, WPARAM wParam, LPARAM 
 				const UINT clicked(TrackPopupMenu(Hmenu, TPM_RETURNCMD | TPM_NONOTIFY, curPoint.x, curPoint.y, 0, hwnd, NULL));
 				switch (clicked)
 				{
-					case ID_TRAY_EXIT:  PostQuitMessage(0); break; // quit the application
-					case ID_TRAY_ABOUT:	ShowAbout(hwnd);    break; // show about menu
+					case ID_TRAY_SYNC:  GetAndUpdateColor(); break; // manual color sync
+					case ID_TRAY_ABOUT: ShowAbout(hwnd);     break; // show about menu
+					case ID_TRAY_EXIT:  PostQuitMessage(0);  break; // quit the application
 				}
 			}
 		}
@@ -185,8 +187,9 @@ int WINAPI WinMain(HINSTANCE hThisInstance,
 
 	// setup right-click popup menu
 	Hmenu = CreatePopupMenu();
+	AppendMenu(Hmenu, MF_STRING, ID_TRAY_SYNC, TEXT("Synchronize manually"));
+	SetMenuDefaultItem(Hmenu, ID_TRAY_SYNC, FALSE);
 	AppendMenu(Hmenu, MF_STRING, ID_TRAY_ABOUT, TEXT("About UniLight..."));
-	SetMenuDefaultItem(Hmenu, ID_TRAY_ABOUT, FALSE);
 	AppendMenu(Hmenu, MF_STRING, ID_TRAY_EXIT, TEXT("Exit"));
 
 	// create window prototype

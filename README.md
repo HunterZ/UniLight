@@ -7,16 +7,18 @@ I have an Alienware 17R3 laptop and have been using AlienFX WinTheme to sync the
 ## Usage
 Simply launch UniLight and forget about it. Configure Windows to launch it at startup if you want.
 
-UniLight appears as a system tray icon that looks like a color wheel, and polls the Windows accent color at a rate of 1Hz (to minimize CPU usage). On startup and whenever any changes are detected, it calls the LightFX/AlienFX and Logitech Gaming LED APIs to set all RGB LEDs to the current accent color.
+UniLight appears as a system tray icon that looks like a color wheel, and listens for changes to accent color or other conditions that may affect LED color synchronization. On startup and whenever any relevant changes are detected, it calls the LightFX/AlienFX and Logitech Gaming LED APIs to set all RGB LEDs to the current accent color.
 
 Hovering the mouse cursor over the UniLight tray icon will produce a tooltip containing status information, including the current and last accent colors, and whether they were successfully applied to Alienware and/or Logitech devices.
 
-Right-clicking the tray icon will bring up an about/exit menu, while left-clicking brings up the About popup.
+Right-clicking the tray icon will bring up a context menu with self-explanatory selections, while left-clicking performs a manual color synchronization.
 
 ## System Requirements
 I'm not 100% sure about these. I tried to implement the Alienware and Logitech API access in such a way that it will fail gracefully if either API is not supported on your system. UniLight will also attempt to re-apply the color on every color change, so that there is some hope of avoiding a restart if relevant peripherals are (re)connected after UniLight has already been launched. I haven't tried to make it any more aggressive because I have to poll both APIs (neither provides a notification callback mechanism) and I don't want UniLight to have a noticeable performance impact on gaming or other tasks.
 
 UniLight should load the AlienFX and/or Logitech Gaming LED DLLs that you have installed as part of Alienware Command Center (minimum version unknown; I'm currently on 4.5.19) and Logitech Gaming Software (version 8.55 or higher required for LED support), respectively. Also, the binary distribution of this program is 32-bit for maximum compatibility (I'm running it on 64-bit systems, so I know it works there).
+
+As of version 1.1, UniLight is completely event-driven and no longer polls the Windows accent color on a timer. The result should be extremely minimal CPU usage.
 
 ## Tools used
 This project was created with Microsoft Visual Studio Community 2015, Alienware AlienFX 1.0 SDK (formerly Dell LightFX), and Logitech Gaming LED SDK.
