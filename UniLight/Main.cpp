@@ -16,6 +16,7 @@ typedef struct _iobuf FILE;
 #endif
 */
 #include "ColorUtil.h"
+#include "CUEUtil.h"
 #include "LFXUtil.h"
 #include "LLEDUtil.h"
 #include "resource.h"
@@ -44,6 +45,7 @@ namespace
 	NOTIFYICONDATA notifyIconData;
 	const LPCWSTR szTIP(_T("UniLight"));
 	const LPCWSTR szClassName(_T("UniLight"));
+	CUEUtil::CUEUtilC cueUtil;
 	LFXUtil::LFXUtilC lfxUtil;
 	LLEDUtil::LLEDUtilC llledUtil;
 	COLORREF lastColor(0);
@@ -82,17 +84,25 @@ void ShowAbout(HWND hwnd)
 
 void UpdateColor(const COLORREF curColor)
 {
+	const unsigned char red(GetRValue(curColor));
+	const unsigned char green(GetGValue(curColor));
+	const unsigned char blue(GetBValue(curColor));
+
+	// set Corsair CUE color
+	const bool cueStatus(cueUtil.SetCUEColor(red, green, blue));
+
 	// set AlienFX/LightFX color
-	const bool lfxStatus(lfxUtil.SetLFXColor(GetRValue(curColor), GetGValue(curColor), GetBValue(curColor)));
+	const bool lfxStatus(lfxUtil.SetLFXColor(red, green, blue));
 
 	// set Logitech LED color
-	const bool lledStatus(llledUtil.SetLLEDColor(GetRValue(curColor), GetGValue(curColor), GetBValue(curColor)));
+	const bool lledStatus(llledUtil.SetLLEDColor(red, green, blue));
 
 	// set tooltip
 	std::wstringstream s;
 	s << "UniLight status:";
 	s << "\nCurrent color: 0x" << std::setfill(L'0') << std::setw(8) << std::hex << curColor;
 	s << "\nPrevious color: 0x" << std::setfill(L'0') << std::setw(8) << std::hex << lastColor;
+	s << "\nCorsCUE: " << (cueStatus ? "active" : "inactive");
 	s << "\nLightFX: " << (lfxStatus ? "active" : "inactive");
 	s << "\nLogiLED: " << (lledStatus ? "active" : "inactive");
 	StringCchCopy(notifyIconData.szTip, 128, s.str().c_str());
