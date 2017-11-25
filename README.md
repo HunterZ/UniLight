@@ -1,5 +1,5 @@
 # UniLight
-Synchronize Dell/Alienware LightFX/AlienFX and/or Logitech Gaming LED devices with Windows accent/colorization color
+Synchronize Corsair CUE, Dell/Alienware LightFX/AlienFX, and/or Logitech Gaming LED devices with Windows accent/colorization color
 
 ## Demo
 https://youtu.be/I3xfJtbLqgA
@@ -16,15 +16,22 @@ Hovering the mouse cursor over the UniLight tray icon will produce a tooltip con
 
 Right-clicking the tray icon will bring up a context menu with self-explanatory selections, while left-clicking performs a manual color synchronization.
 
+## Troubleshooting
+UniLight comes with DLLs for the various supported APIs. These are mainly included so that users without software from one or more of the supported vendors can still use UniLight. If you have trouble with the included DLLs, it's highly recommended that you try deleting/renaming the included DLLs for which you may have system-level counterparts installed.
+
+Dell/Alienware LightFX/AlienFX DLLs are not included, because the fact that that SDK requires that I manually load the DLL anyway means that I can just disable support if the DLL is not available at the OS level.
+
 ## System Requirements
-I'm not 100% sure about these. I tried to implement the Alienware and Logitech API access in such a way that it will fail gracefully if either API is not supported on your system. UniLight will also attempt to re-apply the color on every color change, so that there is some hope of avoiding a restart if relevant peripherals are (re)connected after UniLight has already been launched. I haven't tried to make it any more aggressive because I have to poll both APIs (neither provides a notification callback mechanism) and I don't want UniLight to have a noticeable performance impact on gaming or other tasks.
+I'm not 100% sure about these. I tried to implement the API access in such a way that it will fail gracefully if a hardware vendor API is not supported on your system. UniLight will also attempt to re-apply the color on every color change, so that there is some hope of avoiding having to restart UniLight if relevant peripherals are (re)connected after UniLight has already been launched. I haven't tried to make it any more aggressive because I have to poll both APIs (neither provides a notification callback mechanism) and I don't want UniLight to have a noticeable performance impact on gaming or other tasks.
 
 UniLight should load the AlienFX and/or Logitech Gaming LED DLLs that you have installed as part of Alienware Command Center (minimum version unknown; I'm currently on 4.5.19) and Logitech Gaming Software (version 8.55 or higher required for LED support), respectively. Also, the binary distribution of this program is 32-bit for maximum compatibility (I'm running it on 64-bit systems, so I know it works there).
 
 As of version 1.1, UniLight is completely event-driven and no longer polls the Windows accent color on a timer. The result should be extremely minimal CPU usage.
 
 ## Tools used
-This project was created with Microsoft Visual Studio Community 2015, Alienware AlienFX 1.0 SDK (formerly Dell LightFX), and Logitech Gaming LED SDK.
+This project was created with Microsoft Visual Studio Community 2015, Alienware AlienFX 1.0 SDK (formerly Dell LightFX), Corsair CUE SDK (Protocol version 4), and Logitech Gaming LED SDK.
 
 ## License
-All code contained in this repository is covered by the MIT open source license. See the LICENSE file for details. Usage of this code must be attributed to GitHub user HunterZ.
+All code contained in this repository and binaries built from it are covered by the MIT open source license. See the LICENSE file for details. Usage of this code must be attributed to GitHub user HunterZ.
+
+Included DLLs are owned by the hardware vendor companies (Corsair, Dell/Alienware, Logitech).
