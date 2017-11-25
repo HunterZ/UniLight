@@ -1,6 +1,9 @@
 # UniLight
 Synchronize Dell/Alienware LightFX/AlienFX and/or Logitech Gaming LED devices with Windows accent/colorization color
 
+## Demo
+https://youtu.be/I3xfJtbLqgA
+
 ## Background
 I have an Alienware 17R3 laptop and have been using AlienFX WinTheme to sync the color my LED's with the Windows 10 accent color. However, I just purchased a Logitech G502 Proteus Spectrum and wanted to have it work the same way. This inspired me to write a C++ application that accomplishes the same thing as AlienFX WinTheme but also adds support for Logitech RGB LED equipped devices.
 
