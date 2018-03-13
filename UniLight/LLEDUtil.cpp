@@ -17,10 +17,13 @@ namespace
 
 	bool initLLED()
 	{
-		if (!initialized) initialized = LogiLedInit();
+		if (initialized) return true;
 
-		// don't really care if this succeeds
-		LogiLedSaveCurrentLighting();
+		if (LogiLedInit())
+		{
+			LogiLedSaveCurrentLighting();
+			initialized = true;
+		}
 
 		return initialized;
 	}
@@ -38,16 +41,16 @@ namespace LLEDUtil
 	{
 		LogiLedRestoreLighting();
 
-		void LogiLedShutdown();
+		LogiLedShutdown();
 	}
 
 	bool LLEDUtilC::SetLLEDColor(unsigned char red, unsigned char green, unsigned char blue)
 	{
-		if (!initialized && !initLLED()) return false;
-
-		// target only RGB devices (as opposed to monochrome)
-		if (!LogiLedSetTargetDevice(LOGI_DEVICETYPE_PERKEY_RGB | LOGI_DEVICETYPE_RGB)) return false;
-
-		return LogiLedSetLighting(b2p(red), b2p(green), b2p(blue));
+		return
+		(
+			initLLED() &&
+			LogiLedSetTargetDevice(LOGI_DEVICETYPE_PERKEY_RGB | LOGI_DEVICETYPE_RGB) &&
+			LogiLedSetLighting(b2p(red), b2p(green), b2p(blue))
+		);
 	}
 }
