@@ -3,6 +3,7 @@
 #include "LLEDUtil.h"
 
 #include "LogitechLEDLib.h"
+#include <tchar.h>
 
 namespace
 {
@@ -15,17 +16,19 @@ namespace
 
 	bool initialized(false);
 
-	bool initLLED()
+	ResultT initLLED()
 	{
-		if (initialized) return true;
+		if (initialized)
+			return ResultT(true, _T("Already initialized"));
 
-		if (LogiLedInit())
-		{
-			LogiLedSaveCurrentLighting();
-			initialized = true;
-		}
+		if (!LogiLedInit())
+			return ResultT(false, _T("LogiLedInit() failed"));
 
-		return initialized;
+		// save previous lighting state as courtesy to user
+		// don't care if this succeeds though
+		LogiLedSaveCurrentLighting();
+		initialized = true;
+		return ResultT(true, _T("initLLED() success"));
 	}
 }
 
@@ -39,18 +42,25 @@ namespace LLEDUtil
 
 	LLEDUtilC::~LLEDUtilC()
 	{
+		// attempt to restore original state
+		// don't care if these succeed
 		LogiLedRestoreLighting();
-
 		LogiLedShutdown();
+		initialized = false;
 	}
 
-	bool LLEDUtilC::SetLLEDColor(unsigned char red, unsigned char green, unsigned char blue)
+	ResultT LLEDUtilC::SetLLEDColor(unsigned char red, unsigned char green, unsigned char blue)
 	{
-		return
-		(
-			initLLED() &&
-			LogiLedSetTargetDevice(LOGI_DEVICETYPE_PERKEY_RGB | LOGI_DEVICETYPE_RGB) &&
-			LogiLedSetLighting(b2p(red), b2p(green), b2p(blue))
-		);
+		const ResultT& result(initLLED());
+		if (!result.first)
+			return result;
+
+		if (!LogiLedSetTargetDevice(LOGI_DEVICETYPE_PERKEY_RGB | LOGI_DEVICETYPE_RGB))
+			return ResultT(false, _T("LogiLedSetTargetDevice() failed"));
+
+		if (!LogiLedSetLighting(b2p(red), b2p(green), b2p(blue)))
+			return ResultT(false, _T("LogiLedSetLighting() failed"));
+
+		return ResultT(true, _T("SetLLEDColor() success"));
 	}
 }

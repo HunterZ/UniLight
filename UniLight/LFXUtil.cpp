@@ -45,13 +45,15 @@ namespace
 
 	bool initialized(false);
 
-	bool InitLFX()
+	ResultT InitLFX()
 	{
-		if (initialized) return true;
+		if (initialized)
+			return ResultT(true, _T("Already initialized"));
 
 		// Dell is stupid and forces us to manually load the DLL and bind its functions
 		hLibrary = LoadLibrary(_T(LFX_DLL_NAME));
-		if (!hLibrary) return false;
+		if (!hLibrary)
+			return ResultT(false, _T("LoadLibrary() failed"));
 
 		_LFX_Initialize = (LFX2INITIALIZE)GetProcAddress(hLibrary, LFX_DLL_INITIALIZE);
 		_LFX_Release = (LFX2RELEASE)GetProcAddress(hLibrary, LFX_DLL_RELEASE);
@@ -73,9 +75,11 @@ namespace
 		_LFX_SetTiming = (LFX2SETTIMING)GetProcAddress(hLibrary, LFX_DLL_SETTIMING);
 		_LFX_GetVersion = (LFX2GETVERSION)GetProcAddress(hLibrary, LFX_DLL_GETVERSION);
 
-		LFX_RESULT result(_LFX_Initialize());
-		initialized = (result == LFX_SUCCESS);
-		return initialized;
+		if (_LFX_Initialize() != LFX_SUCCESS)
+			return ResultT(false, _T("_LFX_Initialize() failed"));
+
+		initialized = true;
+		return ResultT(true, _T("InitFX() success"));
 	}
 }
 
@@ -91,25 +95,32 @@ namespace LFXUtil
 		}
 	}
 
-	bool LFXUtilC::SetLFXColor(unsigned char red, unsigned char green, unsigned char blue)
+	ResultT LFXUtilC::SetLFXColor(unsigned char red, unsigned char green, unsigned char blue)
 	{
 		// perform lazy initialization
 		// this should support a device being plugged in after the program has already started running
 		// abort if initialization fails
-		if (!initialized && !InitLFX()) return false;
+		const ResultT& result(InitLFX());
+		if (!result.first)
+			return result;
 
 		// Reset the state machine and await light settings
-		if (_LFX_Reset() != LFX_SUCCESS) return false;
+		if (_LFX_Reset() != LFX_SUCCESS)
+			return ResultT(false, _T("_LFX_Reset() failed"));
+
 		// Set all lights to color
 		static ColorU color;
 		color.cs.red = red;
 		color.cs.green = green;
 		color.cs.blue = blue;
 		color.cs.brightness = 0xFF;
-		if (_LFX_Light(LFX_ALL, color.ci) != LFX_SUCCESS) return false;
-		// Update the state machine, which causes the physical color change
-		if (_LFX_Update() != LFX_SUCCESS) return false;
+		if (_LFX_Light(LFX_ALL, color.ci) != LFX_SUCCESS)
+			return ResultT(false, _T("_LFX_Light() failed"));
 
-		return true;
+		// Update the state machine, which causes the physical color change
+		if (_LFX_Update() != LFX_SUCCESS)
+			return ResultT(false, _T("_LFX_Update() failed"));
+
+		return ResultT(true, _T("SetLFXColor() success"));
 	}
 }

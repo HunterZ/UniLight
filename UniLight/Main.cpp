@@ -20,6 +20,7 @@ typedef struct _iobuf FILE;
 #include "LFXUtil.h"
 #include "LLEDUtil.h"
 #include "resource.h"
+#include "UniLight.h"
 
 #include <iomanip>
 #include <sstream>
@@ -34,8 +35,9 @@ typedef struct _iobuf FILE;
 */
 #define ID_TRAY_APP_ICON 1001
 #define ID_TRAY_SYNC     1002
-#define ID_TRAY_ABOUT    1003
-#define ID_TRAY_EXIT     1004
+#define ID_TRAY_STATUS   1003
+#define ID_TRAY_ABOUT    1004
+#define ID_TRAY_EXIT     1005
 #define WM_SYSICON       (WM_USER + 1)
 
 namespace
@@ -43,12 +45,23 @@ namespace
 	UINT WM_TASKBARCREATED(0);
 	HMENU Hmenu;
 	NOTIFYICONDATA notifyIconData;
-	const LPCWSTR szTIP(_T("UniLight"));
+	const LPCWSTR szTIP(_T("UniLight status:\n...initializing..."));
 	const LPCWSTR szClassName(_T("UniLight"));
 	CUEUtil::CUEUtilC cueUtil;
 	LFXUtil::LFXUtilC lfxUtil;
 	LLEDUtil::LLEDUtilC llledUtil;
 	COLORREF lastColor(0);
+	ResultT cueStatus(false, _T("Not yet initialized"));
+	ResultT lfxStatus(false, _T("Not yet initialized"));
+	ResultT lledStatus(false, _T("Not yet initialized"));
+	const std::wstring sSuccess(_T("SUCCESS"));
+	const std::wstring sFailure(_T("FAILURE"));
+	const std::wstring sIndent2(_T("\n\t\t"));
+	const std::wstring sCUEStatus(_T("\n\n\tCorsair CUE:"));
+	const std::wstring sLFXStatus(_T("\n\n\tDell/Alienware AlienFX/LightFX:"));
+	const std::wstring sLLEDStatus(_T("\n\n\tLogitech LED:"));
+	const wchar_t cSuccess(0x2714); // check mark
+	const wchar_t cFailure(0x2716); // cross mark
 }
 /*
 // maximum mumber of lines the output console should have
@@ -82,6 +95,22 @@ void ShowAbout(HWND hwnd)
 	active = false;
 }
 
+void ShowStatus(HWND hwnd)
+{
+	SetForegroundWindow(hwnd);
+	std::wstring status(_T("Snapshot of status details from most recent synchronization:\n"));
+	status += sCUEStatus
+		+ sIndent2 + (cueStatus.first ? sSuccess : sFailure)
+		+ sIndent2 + cueStatus.second;
+	status += sLFXStatus
+		+ sIndent2 + (lfxStatus.first ? sSuccess : sFailure)
+		+ sIndent2 + lfxStatus.second;
+	status += sLLEDStatus
+		+ sIndent2 + (lledStatus.first ? sSuccess : sFailure)
+		+ sIndent2 + lledStatus.second;
+	MessageBox(hwnd, status.c_str(), _T("UniLight detailed status"), NULL);
+}
+
 void UpdateColor(const COLORREF curColor)
 {
 	const unsigned char red(GetRValue(curColor));
@@ -89,23 +118,23 @@ void UpdateColor(const COLORREF curColor)
 	const unsigned char blue(GetBValue(curColor));
 
 	// set Corsair CUE color
-	const bool cueStatus(cueUtil.SetCUEColor(red, green, blue));
+	cueStatus = cueUtil.SetCUEColor(red, green, blue);
 
 	// set AlienFX/LightFX color
-	const bool lfxStatus(lfxUtil.SetLFXColor(red, green, blue));
+	lfxStatus = lfxUtil.SetLFXColor(red, green, blue);
 
 	// set Logitech LED color
-	const bool lledStatus(llledUtil.SetLLEDColor(red, green, blue));
+	lledStatus = llledUtil.SetLLEDColor(red, green, blue);
 
 	// set tooltip
 	std::wstringstream s;
 	s << "UniLight status:";
 	s << "\nCurrent color: 0x" << std::setfill(L'0') << std::setw(8) << std::hex << curColor;
 	s << "\nPrevious color: 0x" << std::setfill(L'0') << std::setw(8) << std::hex << lastColor;
-	s << "\nCorsCUE: " << (cueStatus ? "active" : "inactive");
-	s << "\nLightFX: " << (lfxStatus ? "active" : "inactive");
-	s << "\nLogiLED: " << (lledStatus ? "active" : "inactive");
-	StringCchCopy(notifyIconData.szTip, 128, s.str().c_str());
+	s << "\nCorsCUE: " << (cueStatus.first ? cSuccess : cFailure);
+	s << "\nLightFX: " << (lfxStatus.first ? cSuccess : cFailure);
+	s << "\nLogiLED: " << (lledStatus.first ? cSuccess : cFailure);
+	StringCchCopy(notifyIconData.szTip, sizeof(notifyIconData.szTip), s.str().c_str());
 	Shell_NotifyIcon(NIM_MODIFY, &notifyIconData);
 
 	// update last-seen color to new value
@@ -158,9 +187,10 @@ LRESULT CALLBACK WindowProcedure(HWND hwnd, UINT message, WPARAM wParam, LPARAM 
 				const UINT clicked(TrackPopupMenu(Hmenu, TPM_RETURNCMD | TPM_NONOTIFY, curPoint.x, curPoint.y, 0, hwnd, NULL));
 				switch (clicked)
 				{
-					case ID_TRAY_SYNC:  GetAndUpdateColor(); break; // manual color sync
-					case ID_TRAY_ABOUT: ShowAbout(hwnd);     break; // show about menu
-					case ID_TRAY_EXIT:  PostQuitMessage(0);  break; // quit the application
+					case ID_TRAY_SYNC:   GetAndUpdateColor(); break; // manual color sync
+					case ID_TRAY_ABOUT:  ShowAbout(hwnd);     break; // show about menu
+					case ID_TRAY_STATUS: ShowStatus(hwnd);    break; // show detailed status
+					case ID_TRAY_EXIT:   PostQuitMessage(0);  break; // quit the application
 				}
 			}
 		}
@@ -199,6 +229,7 @@ int WINAPI WinMain(HINSTANCE hThisInstance,
 	Hmenu = CreatePopupMenu();
 	AppendMenu(Hmenu, MF_STRING, ID_TRAY_SYNC, TEXT("Synchronize manually"));
 	SetMenuDefaultItem(Hmenu, ID_TRAY_SYNC, FALSE);
+	AppendMenu(Hmenu, MF_STRING, ID_TRAY_STATUS, TEXT("Detailed status..."));
 	AppendMenu(Hmenu, MF_STRING, ID_TRAY_ABOUT, TEXT("About UniLight..."));
 	AppendMenu(Hmenu, MF_STRING, ID_TRAY_EXIT, TEXT("Exit"));
 

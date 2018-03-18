@@ -2,6 +2,8 @@
 
 #pragma once
 
+#include "UniLight.h"
+
 // utilities for working with Corsair Utility Engine (CUE) API
 namespace CUEUtil
 {
@@ -13,6 +15,6 @@ namespace CUEUtil
 
 			virtual ~CUEUtilC();
 
-			bool SetCUEColor(unsigned char red, unsigned char green, unsigned char blue);
+			ResultT SetCUEColor(unsigned char red, unsigned char green, unsigned char blue);
 	};
 }

@@ -31,6 +31,7 @@
     <ClInclude Include="LLEDUtil.h" />
     <ClInclude Include="LFXUtil.h" />
     <ClInclude Include="resource.h" />
+    <ClInclude Include="UniLight.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="UniLight.rc" />

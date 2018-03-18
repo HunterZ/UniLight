@@ -2,6 +2,8 @@
 
 #pragma once
 
+#include "UniLight.h"
+
 // utilities for working with Dell LightFX/AlienFX API
 namespace LFXUtil
 {
@@ -16,6 +18,6 @@ namespace LFXUtil
 
 			// set LFX color to given RGB value
 			// returns true on success, false on failure
-			bool SetLFXColor(unsigned char red, unsigned char green, unsigned char blue);
+			ResultT SetLFXColor(unsigned char red, unsigned char green, unsigned char blue);
 	};
 }
