@@ -29,7 +29,11 @@ UniLight should load the AlienFX and/or Logitech Gaming LED DLLs that you have i
 As of version 1.1, UniLight is completely event-driven and no longer polls the Windows accent color on a timer. The result should be extremely minimal CPU usage.
 
 ## Tools used
-This project was created with Microsoft Visual Studio Community 2015, Alienware AlienFX 1.0 SDK (formerly Dell LightFX), Corsair CUE SDK (Protocol version 4), and Logitech Gaming LED SDK.
+This project was created with:
+* Microsoft Visual Studio Community 2017: https://www.visualstudio.com/vs/community/
+* Alienware AlienFX 1.0 SDK (formerly Dell LightFX): http://www.dell.com/support/home/us/en/19/drivers/driversdetails?driverId=T5GGP
+* Corsair CUE SDK (Protocol version 4): http://forum.corsair.com/v3/showthread.php?t=156813
+* Logitech LED Illumination SDK: https://www.logitechg.com/en-us/developers
 
 ## License
 All code contained in this repository and binaries built from it are covered by the MIT open source license. See the LICENSE file for details. Usage of this code must be attributed to GitHub user HunterZ.
