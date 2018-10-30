@@ -2,7 +2,7 @@
 
 #include "CUEUtil.h"
 
-#include "CUESDK.h"
+#include "cots/corsair/CUESDK.h"
 #include <tchar.h>
 #include <vector>
 

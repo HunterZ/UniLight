@@ -1,0 +1,7 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<application>
+    <title>UniLight</title>
+    <description>Synchronizes RGB LED devices with Windows accent/colorization color</description>
+    <author name="HunterZ" contact="https://github.com/HunterZ/UniLight"/>
+    <device_supported keyboard="1" mouse="1" headset="1" mousepad="1" keypad="1"/>
+</application>

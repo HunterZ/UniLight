@@ -7,11 +7,7 @@
 *.tlog
 *.user
 .vs
-CUESDK*
-Corsair*.h
 Debug/
-LFX2.h
-LogitechLEDLib.*
 Release/
 UniLight*.zip
 UniLight.exe

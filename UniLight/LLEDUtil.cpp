@@ -2,7 +2,7 @@
 
 #include "LLEDUtil.h"
 
-#include "LogitechLEDLib.h"
+#include "cots/logitech/LogitechLEDLib.h"
 #include <tchar.h>
 
 namespace
