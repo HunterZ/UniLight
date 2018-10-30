@@ -19,6 +19,7 @@ typedef struct _iobuf FILE;
 #include "CUEUtil.h"
 #include "LFXUtil.h"
 #include "LLEDUtil.h"
+#include "RZCUtil.h"
 #include "resource.h"
 #include "UniLight.h"
 
@@ -50,16 +51,19 @@ namespace
 	CUEUtil::CUEUtilC cueUtil;
 	LFXUtil::LFXUtilC lfxUtil;
 	LLEDUtil::LLEDUtilC llledUtil;
+	RZCUtil::RZCUtilC rzcUtil;
 	COLORREF lastColor(0);
 	ResultT cueStatus(false, _T("Not yet initialized"));
 	ResultT lfxStatus(false, _T("Not yet initialized"));
 	ResultT lledStatus(false, _T("Not yet initialized"));
+	ResultT rzcStatus(false, _T("Not yet initialized"));
 	const std::wstring sSuccess(_T("SUCCESS"));
 	const std::wstring sFailure(_T("FAILURE"));
 	const std::wstring sIndent2(_T("\n\t\t"));
 	const std::wstring sCUEStatus(_T("\n\n\tCorsair CUE:"));
 	const std::wstring sLFXStatus(_T("\n\n\tDell/Alienware AlienFX/LightFX:"));
 	const std::wstring sLLEDStatus(_T("\n\n\tLogitech LED:"));
+	const std::wstring sRZCStatus(_T("\n\n\tRazer Chroma:"));
 	const wchar_t cSuccess(0x2714); // check mark
 	const wchar_t cFailure(0x2716); // cross mark
 }
@@ -108,6 +112,9 @@ void ShowStatus(HWND hwnd)
 	status += sLLEDStatus
 		+ sIndent2 + (lledStatus.first ? sSuccess : sFailure)
 		+ sIndent2 + lledStatus.second;
+	status += sRZCStatus
+		+ sIndent2 + (rzcStatus.first ? sSuccess : sFailure)
+		+ sIndent2 + rzcStatus.second;
 	MessageBox(hwnd, status.c_str(), _T("UniLight detailed status"), NULL);
 }
 
@@ -126,6 +133,9 @@ void UpdateColor(const COLORREF curColor)
 	// set Logitech LED color
 	lledStatus = llledUtil.SetLLEDColor(red, green, blue);
 
+	// set Razer Chroma color
+	rzcStatus = rzcUtil.SetRZCColor(red, green, blue);
+
 	// set tooltip
 	std::wstringstream s;
 	s << "UniLight status:";
@@ -134,6 +144,7 @@ void UpdateColor(const COLORREF curColor)
 	s << "\nCorsCUE: " << (cueStatus.first ? cSuccess : cFailure);
 	s << "\nLightFX: " << (lfxStatus.first ? cSuccess : cFailure);
 	s << "\nLogiLED: " << (lledStatus.first ? cSuccess : cFailure);
+	s << "\nRzrChrm: " << (rzcStatus.first ? cSuccess : cFailure);
 	StringCchCopy(notifyIconData.szTip, sizeof(notifyIconData.szTip), s.str().c_str());
 	Shell_NotifyIcon(NIM_MODIFY, &notifyIconData);
 

@@ -24,6 +24,7 @@
     <ClCompile Include="LFXUtil.cpp" />
     <ClCompile Include="LLEDUtil.cpp" />
     <ClCompile Include="Main.cpp" />
+    <ClCompile Include="RZCUtil.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ColorUtil.h" />
@@ -31,6 +32,7 @@
     <ClInclude Include="LLEDUtil.h" />
     <ClInclude Include="LFXUtil.h" />
     <ClInclude Include="resource.h" />
+    <ClInclude Include="RZCUtil.h" />
     <ClInclude Include="UniLight.h" />
   </ItemGroup>
   <ItemGroup>
