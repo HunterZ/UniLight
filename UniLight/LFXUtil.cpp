@@ -2,7 +2,7 @@
 
 #include "LFXUtil.h"
 
-#include "LFX2.h"
+#include "cots/dell/LFX2.h"
 #include <tchar.h>
 #include <windows.h>
 

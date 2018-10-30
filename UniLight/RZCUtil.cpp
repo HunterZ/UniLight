@@ -5,9 +5,9 @@
 #include <tchar.h>
 #include <vector>
 #include <windows.h> // COLORREF, HMODULE
-#include "razer/RzChromaSDKDefines.h"
-#include "razer/RzChromaSDKTypes.h"
-#include "razer/RzErrors.h"
+#include "cots/razer/RzChromaSDKDefines.h"
+#include "cots/razer/RzChromaSDKTypes.h"
+#include "cots/razer/RzErrors.h"
 
 //#ifdef _WIN64
 //#define CHROMASDKDLL        _T("RzChromaSDK64.dll")
