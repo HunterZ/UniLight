@@ -8,6 +8,8 @@ https://youtu.be/I3xfJtbLqgA
 I have an Alienware 17R3 laptop and have been using AlienFX WinTheme to sync the color my LED's with the Windows 10 accent color. However, I just purchased a Logitech G502 Proteus Spectrum and wanted to have it work the same way. This inspired me to write a C++ application that accomplishes the same thing as AlienFX WinTheme but also adds support for Logitech RGB LED equipped devices.
 
 ## Usage
+Download latest version from: https://github.com/HunterZ/UniLight/releases
+
 Simply launch UniLight and forget about it. Configure Windows to launch it at startup if you want.
 
 UniLight appears as a system tray icon that looks like a color wheel, and listens for changes to accent color or other conditions that may affect LED color synchronization. On startup and whenever any relevant changes are detected, it calls the various APIs to set all RGB LEDs to the current accent color.
